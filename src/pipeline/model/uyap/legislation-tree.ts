@@ -1,4 +1,4 @@
-import connection from '../db.js';
+import connection from '../../../storage/db';
 import mongoose from "mongoose";
 
 const legislationTreeSchema = new mongoose.Schema({
@@ -15,7 +15,10 @@ const legislationTreeSchema = new mongoose.Schema({
 
     providerParentId: Number,
 
-    providerLegislationId: Number
+    providerLegislationId: {
+        type: Number,
+        unique: true
+    }
 }, { timestamps: true, collection: 'tree'} );
 
 legislationTreeSchema.add({

@@ -1,10 +1,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+axios.defaults.baseURL = 'https://bedesten.adalet.gov.tr/mevzuat/';
 
 function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-axios.defaults.baseURL = 'https://bedesten.adalet.gov.tr/mevzuat/';
 
 class Requester {
 
@@ -36,7 +35,7 @@ class Requester {
                 return response.data;
             }
             catch (error) {
-                console.log("Too many requests. Waiting.")
+                //console.log("Too many requests. Waiting.")
 
                 this.blocked = true;
                 

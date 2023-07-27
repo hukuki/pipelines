@@ -1,4 +1,4 @@
-import connection from '../db.js';
+import connection from '../../../storage/db';
 import mongoose from "mongoose";
 
 const legislationMetadataSchema = new mongoose.Schema({

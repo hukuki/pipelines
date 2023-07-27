@@ -1,0 +1,58 @@
+import { Pipeable } from "../../index";
+
+import Requester from "../../request";
+import { TreeResponse, UYAPLegislationTreeNode } from "../../request/interface";
+import CVLegislationMetadata from "../../model/uyap/legislation-metadata";
+import CVLegislationTree from "../../model/uyap/legislation-tree";
+import _ from "lodash";
+
+class TreeScraper extends Pipeable {
+    private instance: Requester;
+
+    private boilerplate = { "data": { "mevzuatId": "103107" }, "applicationName": "UyapMevzuat" };
+
+    private i = 0;
+
+    constructor() {
+        super();
+
+        this.instance = Requester.instance;
+    }
+
+    public async run(prev: CVLegislationMetadata): Promise<any> {
+        this.i++;
+        console.log("wow", this.i);
+
+        const id = prev.providerId;
+        const requestData = _.cloneDeep(this.boilerplate);
+        requestData.data.mevzuatId = `${id}`;
+
+        const response = await this.instance.post<TreeResponse>("mevzuatMaddeTree", requestData);
+
+        if (response.data) {
+            const out = this.convertToOutputFormat(response.data);
+            
+            await  this.next?.run(out);
+        }
+    }
+
+    private convertToOutputFormat(obj: UYAPLegislationTreeNode) : CVLegislationTree {
+        return {
+            providerArticleId: obj.maddeId ? parseInt(obj.maddeId) : null,
+            articleNumber: obj.maddeNo,
+            title: obj.title,
+            description: obj.description,
+        
+            articleTitle: obj.maddeBaslik,
+            providerReasonId: obj.mevzuatGerekceId,
+             
+            providerUpdateDate: obj.guncellemeTarihi ? new Date(obj.guncellemeTarihi) : null,
+            providerParentId: parseInt(obj.parentMaddeId),
+    
+            providerLegislationId: parseInt(obj.mevzuatId),
+            children: obj.children.map(c => this.convertToOutputFormat(c))
+        };
+    }
+}
+
+export default TreeScraper;

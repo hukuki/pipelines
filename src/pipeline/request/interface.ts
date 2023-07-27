@@ -1,5 +1,3 @@
-import CVLegislationTree from "./legislation-tree"
-
 interface UYAPLegislationTreeNode {
     maddeId: string,
     maddeNo: number | null,
@@ -60,11 +58,4 @@ interface UYAPBase64File {
     version: string
 }
 
-interface CVBufferFile {
-    content: Buffer,
-    mimeType: string,
-    version: string,
-    filename: string
-}
-
-export {UYAPLegislationMetadata, UYAPLegislationTreeNode, PaginationResponse, TreeResponse, ArticleResponse, UYAPBase64File, CVBufferFile};
+export {UYAPLegislationMetadata, UYAPLegislationTreeNode, PaginationResponse, TreeResponse, ArticleResponse, UYAPBase64File};

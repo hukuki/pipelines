@@ -20,31 +20,7 @@ class UYAPScrapePipeline extends Pipeline {
     constructor() {
         super();
 
-        this.add(new Map((prev: any) => {
-            return prev;
-        }));
-
-        this.add(new PaginationScraper());
-
-        this.add(new MongoSaver({
-            as: CVLegislationMetadata
-        }));
         
-        this.add(new TreeScraper());
-
-        this.add(new MongoSaver({
-            as: CVLegislationTree
-        }));
-        this.add(new TreeWalker());
-
-        this.add(new ArticleScraper());
-        
-        this.add(new S3Saver({
-            bucket: "casevisor-legislation",
-            nameKey: "filename",
-            contentKey: "content",
-            folder: "article/raw",
-        }));
     }
 }
 

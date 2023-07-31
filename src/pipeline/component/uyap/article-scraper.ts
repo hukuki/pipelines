@@ -38,9 +38,7 @@ class ArticleScraper extends Pipeable {
             version: file.version,
         };
         
-        console.log(prev.providerArticleId +" "+ prev.articleTitle + "\n" + bufferFile.content.toString() + "\n");
-
-        this.next?.run(bufferFile);
+        await this.next?.run(bufferFile);
     }
 }
 

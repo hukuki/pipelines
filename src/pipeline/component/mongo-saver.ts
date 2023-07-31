@@ -1,24 +1,27 @@
 import { Model } from "mongoose";
 import { Pipeable } from "../index";
+import { RateLimiter } from 'limiter';
 
 class MongoSaver extends Pipeable {
     private model: Model<any>;
+    private limiter: RateLimiter;
 
     constructor(config: { as: Model<any> }) {
         super();
 
         this.model = config.as;
+        this.limiter = new RateLimiter({
+            tokensPerInterval: 3,
+            interval: 1000
+        });
     }
 
     public async run(prev: any): Promise<any> {
-        try{
-            await this.model.create(prev);
+        await this.limiter.removeTokens(1);
 
-            await this.next?.run(prev);
-        }catch(e){
-            console.log("error by:", prev);
-            throw e;
-        }
+        await this.model.create(prev);
+
+        await this.next?.run(prev);
     }
 }
 

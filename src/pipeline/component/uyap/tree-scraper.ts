@@ -11,8 +11,6 @@ class TreeScraper extends Pipeable {
 
     private boilerplate = { "data": { "mevzuatId": "103107" }, "applicationName": "UyapMevzuat" };
 
-    private i = 0;
-
     constructor() {
         super();
 
@@ -20,19 +18,18 @@ class TreeScraper extends Pipeable {
     }
 
     public async run(prev: CVLegislationMetadata): Promise<any> {
-        this.i++;
-        console.log("wow", this.i);
-
         const id = prev.providerId;
         const requestData = _.cloneDeep(this.boilerplate);
         requestData.data.mevzuatId = `${id}`;
 
         const response = await this.instance.post<TreeResponse>("mevzuatMaddeTree", requestData);
-
+        
         if (response.data) {
             const out = this.convertToOutputFormat(response.data);
             
             await  this.next?.run(out);
+        } else {
+            console.log(response);
         }
     }
 

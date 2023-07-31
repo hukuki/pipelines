@@ -7,32 +7,43 @@ import _ from "lodash";
 class PaginationScraper extends Pipeable {
     private instance: Requester;
 
+    private from: number;
+    private to: number;
+
     private pageSize = 20;
     private boilerplate = { "data": { "pageSize": this.pageSize, "pageNumber": 1, "mevzuatTurList": ["KANUN", "CB_KARARNAME", "YONETMELIK", "CB_YONETMELIK", "CB_KARAR", "CB_GENELGE", "KHK", "TUZUK", "KKY", "UY", "TEBLIGLER"] }, "applicationName": "UyapMevzuat" };
 
-    constructor() {
+    private monitoring = { donePages: 0 };
+
+    constructor({from = 1, to = -1}: {from: number, to: number} = {from: 1, to: -1}) {
         super();
 
+        this.from = from;
+        this.to = to;
         this.instance = Requester.instance;
     }
 
     public async run(prev?: any): Promise<any> {
-        const numTotalItems = await this.getTotalItems();
-        const numPages = Math.ceil(numTotalItems / this.pageSize);
-
-        for (let i = 1; i < 2; i++) {
-            const page: UYAPLegislationMetadata[] = await this.scrapePage(i);
-            console.log("damn");
-            console.log(page.length);
-            
-            await Promise.all(
-                page.map(async legislation => {
-                    const out = this.convertToOutputFormat(legislation);
-
-                    return this.next?.run(out);
-                })
-            );
+                
+        if(this.to === -1){
+            const numTotalItems = await this.getTotalItems();
+            this.to = Math.ceil(numTotalItems / this.pageSize) + 1;
         }
+
+        const promises = [];
+        for (let i = this.from; i < this.to; i++) {
+                            promises.push(this.scrapePage(i)
+                                        .then(page =>
+                                                    Promise.all(
+                                                        page.map(async legislation => {
+                                                            const out = this.convertToOutputFormat(legislation);
+                                                            await this.next?.run(out);
+                                                            return 
+                                                        })
+                                                    )
+                            ));
+        }
+        await Promise.all(promises);
     }
 
     private async scrapePage(pageNumber: number): Promise<UYAPLegislationMetadata[]> {

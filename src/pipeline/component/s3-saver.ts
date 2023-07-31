@@ -1,6 +1,7 @@
 import _ from "lodash";
 import { uploadFile } from "../../storage/s3";
 import { Pipeable } from "../index";
+import { RateLimiter } from 'limiter';
 
 class S3Saver extends Pipeable {
 
@@ -8,6 +9,7 @@ class S3Saver extends Pipeable {
     private folder: string;
     private nameKey: string;
     private contentKey: string;
+    private limiter : RateLimiter;
 
     constructor({ bucket, nameKey, contentKey, folder }: { bucket: string, nameKey: string, contentKey: string, folder: string }) {
         super();
@@ -16,12 +18,18 @@ class S3Saver extends Pipeable {
         this.folder = folder;
         this.nameKey = nameKey;
         this.contentKey = contentKey;
+        this.limiter = new RateLimiter({
+            tokensPerInterval: 10,
+            interval: 1000
+        });
     }
 
     public async run(prev: any): Promise<any> {
         if (!prev[this.nameKey] || !prev[this.contentKey])
             throw Error(`Key ${this.nameKey} or ${this.contentKey} not found in object ${JSON.stringify(prev)}`);
         
+        await this.limiter.removeTokens(1);
+
         await uploadFile({
             bucket: this.bucket,
             filename: this.folder + "/" + _.get(prev, this.nameKey),

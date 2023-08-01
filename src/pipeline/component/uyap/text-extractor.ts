@@ -60,6 +60,8 @@ class TextExtractor extends Pipeable<CVBufferFile, CVBufferFile> {
             const path = prev.filename.split("/");
             const filename = path[path.length - 1];
 
+            console.log(text);
+            
             await this.next?.run({
                 filename,
                 content

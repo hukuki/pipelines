@@ -11,7 +11,6 @@ class S3Saver extends Pipeable<InputType, InputType> {
     private nameKey: string;
     private contentKey: string;
     private limiter : RateLimiter;
-    private count = 0;
 
     constructor({ bucket, nameKey, contentKey, folder }: { bucket: string, nameKey: string, contentKey: string, folder: string }) {
         super();
@@ -38,8 +37,6 @@ class S3Saver extends Pipeable<InputType, InputType> {
             content: _.get(prev, this.contentKey),
         });
         
-        console.log(this.count++);
-
         await this.next?.run(prev);
     }
 }

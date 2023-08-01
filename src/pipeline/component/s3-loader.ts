@@ -2,12 +2,14 @@ import { getFile, listFolder } from '../../storage/s3';
 import { Pipeable } from '..';
 import { CVBufferFile } from '../interface';
 import { RateLimiter } from 'limiter';
+import { _Object } from '@aws-sdk/client-s3';
 
 class S3Loader extends Pipeable<never, CVBufferFile>{
-    
+
     private bucket: string;
     private folder: string;
-    private limiter : RateLimiter;
+    private limiter: RateLimiter;
+    private count: number = 0;
 
     constructor({ bucket, folder }: { bucket: string, folder: string }) {
         super();
@@ -21,23 +23,39 @@ class S3Loader extends Pipeable<never, CVBufferFile>{
     }
 
     public async run(prev?: undefined): Promise<any> {
-        const files = await listFolder({bucket: this.bucket, folder: this.folder});
-        const keys = files.map(file => file.Key);
-        
-        for (const key of keys) {
-            if(!key) continue;
+        let done = false;
+        let continuationToken = undefined;
 
-            await this.limiter.removeTokens(1);
+        while (!done) {
+            console.log(this.count++);
             
-            getFile({bucket: this.bucket, filename: key}).then(file => {
-                    if(!file) return;
-                    
+            const next = await listFolder({ bucket: this.bucket, folder: this.folder, continuationToken });            
+            
+            if (!next) break;
+            continuationToken = next.NextContinuationToken;
+            
+            if (!next.Contents) break;
+
+            const contents : _Object[] = next.Contents || [];
+            const keys = contents.map(content => content.Key).filter(key => key) as string[]; 
+            
+            for (const key of keys) {
+                if (!key) continue;
+    
+                await this.limiter.removeTokens(1);
+                
+                getFile({ bucket: this.bucket, filename: key }).then(file => {
+                    if (!file) return;
+    
                     this.next?.run({
                         filename: key,
                         content: file
                     });
                 }
-            );
+                );
+            }
+
+            done = !next.IsTruncated;
         }
     }
 }

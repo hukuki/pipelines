@@ -43,22 +43,23 @@ const getFile = async ({ bucket, filename }: { bucket: string, filename: string 
     }
 };
 
-const listFolder = async ({ bucket, folder }: { bucket: string, folder: string }) => {
+const listFolder = async ({ bucket, folder, continuationToken }: { bucket: string, folder: string, continuationToken?: string | undefined }) => {
     // call S3 to retrieve upload file to specified bucket
     try{
         const command = new ListObjectsV2Command({
             Bucket: bucket,
             Prefix: folder,
+            ContinuationToken: continuationToken,
         });
 
         const results = await s3Client.send(command);
-        return results.Contents || [];
+        return results;
     }catch(err){
         console.log("Error:", err);
         console.log("Directory:", folder);
     }
 
-    return [];
+    return undefined;
 };
 
 export { uploadFile, getFile, listFolder };

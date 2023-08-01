@@ -1,8 +1,9 @@
 interface CVBufferFile {
     content: Buffer,
-    mimeType: string,
-    version: string,
-    filename: string
+    mimeType?: string,
+    metadata?: object,
+    version?: string,
+    filename: string,
 }
 
 export { CVBufferFile }

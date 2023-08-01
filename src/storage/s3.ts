@@ -1,4 +1,4 @@
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+import { S3Client, PutObjectCommand, GetObjectCommand, GetObjectCommandInput, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
 const region = process.env.AWS_REGION || "eu-central-1";
 
@@ -24,4 +24,41 @@ const uploadFile = async ({ bucket, filename, content }: { bucket: string, filen
     }
 };
 
-export { uploadFile };
+const getFile = async ({ bucket, filename }: { bucket: string, filename: string }) => {
+    // call S3 to retrieve upload file to specified bucket
+    const getParams: GetObjectCommandInput = {
+        Bucket: bucket,
+        Key: filename,
+    };
+
+    try {
+        const command = new GetObjectCommand(getParams);
+        const results = await s3Client.send(command);
+
+        const str = await results.Body?.transformToString() || "";
+        return Buffer.from(str);
+    } catch (err) {
+        console.log("Error:", err);
+        console.log("Filename:", filename);
+    }
+};
+
+const listFolder = async ({ bucket, folder }: { bucket: string, folder: string }) => {
+    // call S3 to retrieve upload file to specified bucket
+    try{
+        const command = new ListObjectsV2Command({
+            Bucket: bucket,
+            Prefix: folder,
+        });
+
+        const results = await s3Client.send(command);
+        return results.Contents || [];
+    }catch(err){
+        console.log("Error:", err);
+        console.log("Directory:", folder);
+    }
+
+    return [];
+};
+
+export { uploadFile, getFile, listFolder };

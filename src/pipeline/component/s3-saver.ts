@@ -2,14 +2,16 @@ import _ from "lodash";
 import { uploadFile } from "../../storage/s3";
 import { Pipeable } from "../index";
 import { RateLimiter } from 'limiter';
+import { InputType } from "zlib";
 
-class S3Saver extends Pipeable {
+class S3Saver extends Pipeable<InputType, InputType> {
 
     private bucket: string;
     private folder: string;
     private nameKey: string;
     private contentKey: string;
     private limiter : RateLimiter;
+    private count = 0;
 
     constructor({ bucket, nameKey, contentKey, folder }: { bucket: string, nameKey: string, contentKey: string, folder: string }) {
         super();
@@ -19,7 +21,7 @@ class S3Saver extends Pipeable {
         this.nameKey = nameKey;
         this.contentKey = contentKey;
         this.limiter = new RateLimiter({
-            tokensPerInterval: 10,
+            tokensPerInterval: 1000,
             interval: 1000
         });
     }
@@ -35,6 +37,8 @@ class S3Saver extends Pipeable {
             filename: this.folder + "/" + _.get(prev, this.nameKey),
             content: _.get(prev, this.contentKey),
         });
+        
+        console.log(this.count++);
 
         await this.next?.run(prev);
     }

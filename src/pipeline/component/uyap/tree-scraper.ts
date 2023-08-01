@@ -6,7 +6,7 @@ import CVLegislationMetadata from "../../model/uyap/legislation-metadata";
 import CVLegislationTree from "../../model/uyap/legislation-tree";
 import _ from "lodash";
 
-class TreeScraper extends Pipeable {
+class TreeScraper extends Pipeable<CVLegislationMetadata, CVLegislationTree> {
     private instance: Requester;
 
     private boilerplate = { "data": { "mevzuatId": "103107" }, "applicationName": "UyapMevzuat" };

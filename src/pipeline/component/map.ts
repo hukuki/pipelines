@@ -1,6 +1,6 @@
 import { Pipeable } from "..";
 
-class Map extends Pipeable {
+class Map<InputType, OutputType> extends Pipeable<InputType, OutputType> {
     private map: Function;
 
     constructor(map: Function) {
@@ -9,8 +9,8 @@ class Map extends Pipeable {
         this.map = map;
     }
 
-    public async run(prev: any): Promise<any> {
-        const out = await this.map(prev);
+    public async run(prev: InputType): Promise<any> {
+        const out : OutputType = await this.map(prev);
 
         
         await this.next?.run(out);

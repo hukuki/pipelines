@@ -1,8 +1,9 @@
 import { Model } from "mongoose";
 import { Pipeable } from "../index";
 import { RateLimiter } from 'limiter';
+import { InputType } from 'zlib';
 
-class MongoSaver extends Pipeable {
+class MongoSaver<InputType> extends Pipeable<InputType, InputType> {
     private model: Model<any>;
     private limiter: RateLimiter;
 
@@ -16,7 +17,7 @@ class MongoSaver extends Pipeable {
         });
     }
 
-    public async run(prev: any): Promise<any> {
+    public async run(prev: InputType): Promise<any> {
         await this.limiter.removeTokens(1);
 
         await this.model.create(prev);

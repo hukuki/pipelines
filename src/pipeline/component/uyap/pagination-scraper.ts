@@ -4,7 +4,7 @@ import { UYAPLegislationMetadata, PaginationResponse } from "../../request/inter
 import CVLegislationMetadata from '../../model/uyap/legislation-metadata';
 import _ from "lodash";
 
-class PaginationScraper extends Pipeable {
+class PaginationScraper extends Pipeable<never, CVLegislationMetadata> {
     private instance: Requester;
 
     private from: number;

@@ -78,13 +78,15 @@ class Requester {
                 }
                 
                 const avgSuccess = this.monitoring.numSuccess / (new Date().getTime() - this.monitoring.startTime.getTime())*1000;
-                
+               
+                /*
                 console.clear();
                 console.log("* time elapsed: " + (new Date().getTime() - this.monitoring.startTime.getTime()) / 1000 + " seconds");
                 console.log("* successful requests per second (s)     : " + this.monitoring.avgSuccessLastCheckpoint);
                 console.log("* successful requests per second (global): " + avgSuccess);
                 console.log("* success rate: " + (this.monitoring.numSuccess / this.monitoring.numRequests));
                 console.log("* patience: " + this.monitoring.patience);
+                */
 
                 if((this.waitUntil.getTime() + 5000 < new Date().getTime()) && ((this.monitoring.avgSuccessLastCheckpoint < avgSuccess)))
                     this.monitoring.patience--;

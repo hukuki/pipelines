@@ -4,7 +4,7 @@ import CVLegislationTree from "../../model/uyap/legislation-tree";
 /** 
  *  @description This class is used to walk through the tree and return the leaves.
 */
-class TreeWalker extends Pipeable {
+class TreeWalker extends Pipeable<CVLegislationTree, CVLegislationTree> {
 
     public async run(prev: CVLegislationTree) {
         for (const child of prev.children) {

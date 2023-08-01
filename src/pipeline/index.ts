@@ -1,50 +1,56 @@
-abstract class Pipeable {
+abstract class Pipeable<InputType, ReturnType> {
 
-    private _next?: Pipeable;
+    private _next?: Pipeable<ReturnType, any>;
 
-    public abstract run(prev?: any): Promise<any>;
+    public abstract run(prev?: InputType): Promise<any>;
 
-    constructor(next?: Pipeable) {
+    constructor(next?: Pipeable<ReturnType, any>) {
         this._next = next;
     }
 
-    public set next(next: Pipeable | undefined) {
+    public set next(next: Pipeable<ReturnType, any> | undefined) {
         this._next = next;
     }
 
-    public get next(): Pipeable | undefined {
+    public get next(): Pipeable<ReturnType, any> | undefined {
         return this._next;
     }
 }
-class Pipeline extends Pipeable {
-    private nodes: Pipeable[] = [];
+type AnyFunc = (...arg: any) => any;
 
-    public add(node: Pipeable) {
-        if (this.nodes.length !== 0)
-            this.nodes[this.nodes.length - 1].next = node;
+type LastFnReturnType<F extends Array<AnyFunc>, Else = never> = F extends [
+  ...any[],
+  (...arg: any) => infer R
+]
+  ? R
+  : Else;
 
-        this.nodes.push(node);
 
-        // The last node of the pipeline should point to the next node of the pipeline.
-        // This is to allow different pipelines themselves to be connected.
-        node.next = this.next;
-    }
+type PipeArgs<F extends Pipeable<any,any>[], Acc extends Pipeable<any,any>[] = []> = F extends [
+        Pipeable<infer A,infer B>
+  ]
+    ? [...Acc, Pipeable<A,B>]
+    : F extends [Pipeable<infer A, any>, ...infer Tail]
+    ? Tail extends [Pipeable<infer B, any>, ...any[]]
+      ? PipeArgs<Tail, [...Acc, Pipeable<A,B>]>
+      : Acc
+    : Acc;
 
-    public async run(prev?: any) {
-        if (this.nodes.length == 0) return;
-        
-        const firstNode = this.nodes[0];
-        
-        await firstNode.run(prev);
-    }
+function pipeline<F extends Pipeable<any, any>[]>(...nodes:  PipeArgs<F> extends F ? F : PipeArgs<F>) {
+        const chain: Pipeable<any, any>[] = [];
 
-    public set next(next: Pipeable | undefined){
-        super.next = next;
+        for(let node of nodes){
+            if(chain.length !== 0)
+                chain[chain.length - 1].next = node;
+            
+            chain.push(node);
 
-        if (this.nodes.length !== 0)
-            this.nodes[this.nodes.length - 1].next = next;
-    }
+            // The last node of the pipeline should point to the next node of the pipeline.
+            // This is to allow different pipelines themselves to be connected.
+        }
+
+        return chain[0];
 }
 
-export default Pipeline;
+export default pipeline;
 export { Pipeable };

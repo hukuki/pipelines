@@ -7,7 +7,7 @@ import { ArticleResponse, UYAPBase64File } from "../../request/interface";
 import { CVBufferFile } from "../../interface";
 import _ from "lodash";
 
-class ArticleScraper extends Pipeable {
+class ArticleScraper extends Pipeable<CVLegislationTree, CVBufferFile> {
     private instance: Requester;
 
     private boilerplate = { "data": { "maddeId": "" }, "applicationName": "UyapMevzuat" };

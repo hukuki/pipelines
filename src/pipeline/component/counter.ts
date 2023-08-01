@@ -1,13 +1,13 @@
 import { Pipeable } from "..";
 
-class Counter extends Pipeable{
+class Counter<InputType> extends Pipeable<InputType, InputType>{
     
     private count : number = 0;
     
-    public async run(prev?: any): Promise<any> {
+    public async run(prev?: InputType): Promise<any> {
         this.count++;    
         
-        return;
+        await this.next?.run(prev);
     }
 
     get result(): number{

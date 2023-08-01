@@ -1,6 +1,6 @@
 import { Pipeable } from "..";
 
-class Collector extends Pipeable {
+class Collector<InputType> extends Pipeable<InputType, InputType> {
 
     private collector: Array<any> = [];
 
@@ -8,7 +8,7 @@ class Collector extends Pipeable {
         super();
     }
 
-    public async run(prev?: any): Promise<any> {
+    public async run(prev?: InputType): Promise<any> {
         this.collector.push(prev);
     }
 

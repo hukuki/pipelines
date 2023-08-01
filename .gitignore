@@ -2,3 +2,4 @@
 dist/
 .env
 out
+__s3__/

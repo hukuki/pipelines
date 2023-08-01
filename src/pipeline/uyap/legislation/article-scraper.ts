@@ -1,8 +1,8 @@
-import { Pipeable } from "../../index";
-import CVLegislationTree from "../../model/uyap/legislation-tree";
+import { Pipeable } from "../..";
+import CVLegislationTree from "./model/legislation-tree";
 
 import  Requester from "../../request";
-import { ArticleResponse, UYAPBase64File } from "../../request/interface";
+import { ArticleResponse, UYAPBase64File } from "./interface";
 
 import { CVBufferFile } from "../../interface";
 import _ from "lodash";

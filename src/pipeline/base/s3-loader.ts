@@ -27,8 +27,6 @@ class S3Loader extends Pipeable<never, CVBufferFile>{
         let continuationToken = undefined;
 
         while (!done) {
-            console.log(this.count++);
-            
             const next = await listFolder({ bucket: this.bucket, folder: this.folder, continuationToken });            
             
             if (!next) break;

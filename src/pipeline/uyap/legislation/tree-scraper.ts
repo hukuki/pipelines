@@ -1,9 +1,9 @@
-import { Pipeable } from "../../index";
+import { Pipeable } from "../..";
 
 import Requester from "../../request";
-import { TreeResponse, UYAPLegislationTreeNode } from "../../request/interface";
-import CVLegislationMetadata from "../../model/uyap/legislation-metadata";
-import CVLegislationTree from "../../model/uyap/legislation-tree";
+import { TreeResponse, UYAPLegislationTreeNode } from "./interface";
+import CVLegislationMetadata from "./model/legislation-metadata";
+import CVLegislationTree from "./model/legislation-tree";
 import _ from "lodash";
 
 class TreeScraper extends Pipeable<CVLegislationMetadata, CVLegislationTree> {

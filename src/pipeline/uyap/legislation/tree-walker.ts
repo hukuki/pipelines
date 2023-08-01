@@ -1,5 +1,5 @@
-import { Pipeable } from "../../index";
-import CVLegislationTree from "../../model/uyap/legislation-tree";
+import { Pipeable } from "../..";
+import CVLegislationTree from "./model/legislation-tree";
 
 /** 
  *  @description This class is used to walk through the tree and return the leaves.

@@ -1,4 +1,4 @@
-import connection from '../../../storage/db';
+import connection from '../../../../storage/db';
 import mongoose from "mongoose";
 
 const legislationMetadataSchema = new mongoose.Schema({

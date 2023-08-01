@@ -3,11 +3,11 @@ dotenv.config();
 
 import connection from "./storage/db";
 
-import pipeline from './pipeline/index';
-import S3Saver from "./pipeline/component/s3-saver";
-import S3Loader from "./pipeline/component/s3-loader";
-import TextExtractor from './pipeline/component/uyap/text-extractor';
-import FSLoader from './pipeline/component/fs-loader';
+import pipeline from './pipeline';
+import TextExtractor from './pipeline/uyap/legislation/text-extractor';
+
+import FSLoader from './pipeline/base/fs-loader';
+import S3Saver from "./pipeline/base/s3-saver";
 
 connection.once('open', async () => {
     const pipe = pipeline(
@@ -15,13 +15,12 @@ connection.once('open', async () => {
             folder: '__s3__/article/raw'
         }),
         new TextExtractor(),
-        /*
         new S3Saver({
             bucket: "casevisor-legislation",
             folder: "article/clean",
             nameKey: "filename",
             contentKey: "content",
-        }),*/
+        }),
     );
 
     await pipe.run();

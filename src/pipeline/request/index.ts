@@ -1,17 +1,17 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import userAgent from "random-useragent";
 import { RateLimiter } from "limiter";
-import ProxyPool from "./proxy";
+import ProxyPool from './proxy';
 import { HttpsProxyAgent } from "https-proxy-agent";
-import  fs from "fs";
+import fs from "fs";
 
 class Requester {
 
-    private static __singleton__: Requester = new Requester();
+    private static __singleton__: Requester = new Requester({ verbose: false });
 
     private axios: AxiosInstance;
     private limiter: RateLimiter;
-    private pool: ProxyPool;
+    private pool: ProxyPool | undefined;
     private waitUntil: Date;
     private maxPatience = 200;
 
@@ -25,7 +25,7 @@ class Requester {
         patience: number
     };
 
-    private constructor() {
+    private constructor({ pool, verbose = false }: { pool?: ProxyPool, verbose?: boolean }) {
         this.axios = axios.create(
             {
                 baseURL: 'https://bedesten.adalet.gov.tr/mevzuat/',
@@ -33,10 +33,7 @@ class Requester {
             }
         );
 
-        this.pool = new ProxyPool({
-            origin: "http://localhost:8000/",
-            provider: "aws",
-        });
+        this.pool = pool;
 
         this.monitoring = {
             startTime: new Date(),
@@ -57,43 +54,37 @@ class Requester {
 
         this.waitUntil = new Date();
 
-        setInterval(()=>{
-                if(!(this.waitUntil.getTime() > new Date().getTime()) && this.monitoring.patience <= 0){
-                    this.monitoring.patience = this.maxPatience;
-                    this.waitUntil = new Date();
-                    this.waitUntil.setMilliseconds(this.waitUntil.getMilliseconds() + 10000);
-                    
-                    //await this.pool.delete(proxy);
-                    
-                    //proxy = await this.pool.get();
-                }    
-            
-                const sinceCheckpoint = new Date().getTime() - this.monitoring.checkpointTime.getTime();
-                
-                if(sinceCheckpoint > 5000){
-                    this.monitoring.avgSuccessLastCheckpoint = this.monitoring.numSuccessSinceCheckpoint / 5;
+        setInterval(() => {
+            if (!(this.waitUntil.getTime() > new Date().getTime()) && this.monitoring.patience <= 0) {
+                this.monitoring.patience = this.maxPatience;
+                this.waitUntil = new Date();
+                this.waitUntil.setMilliseconds(this.waitUntil.getMilliseconds() + 10000);
+            }
 
-                    this.monitoring.checkpointTime = new Date();
-                    this.monitoring.numSuccessSinceCheckpoint = 0;
-                }
-                
-                const avgSuccess = this.monitoring.numSuccess / (new Date().getTime() - this.monitoring.startTime.getTime())*1000;
-               
-                /*
+            const sinceCheckpoint = new Date().getTime() - this.monitoring.checkpointTime.getTime();
+
+            if (sinceCheckpoint > 5000) {
+                this.monitoring.avgSuccessLastCheckpoint = this.monitoring.numSuccessSinceCheckpoint / 5;
+
+                this.monitoring.checkpointTime = new Date();
+                this.monitoring.numSuccessSinceCheckpoint = 0;
+            }
+
+            const avgSuccess = this.monitoring.numSuccess / (new Date().getTime() - this.monitoring.startTime.getTime()) * 1000;
+
+            if (verbose) {
                 console.clear();
                 console.log("* time elapsed: " + (new Date().getTime() - this.monitoring.startTime.getTime()) / 1000 + " seconds");
                 console.log("* successful requests per second (s)     : " + this.monitoring.avgSuccessLastCheckpoint);
                 console.log("* successful requests per second (global): " + avgSuccess);
                 console.log("* success rate: " + (this.monitoring.numSuccess / this.monitoring.numRequests));
                 console.log("* patience: " + this.monitoring.patience);
-                */
+            }
 
-                if((this.waitUntil.getTime() + 5000 < new Date().getTime()) && ((this.monitoring.avgSuccessLastCheckpoint < avgSuccess)))
-                    this.monitoring.patience--;
-                else
-                    this.monitoring.patience = this.maxPatience;
-
-                
+            if ((this.waitUntil.getTime() + 5000 < new Date().getTime()) && ((this.monitoring.avgSuccessLastCheckpoint < avgSuccess)))
+                this.monitoring.patience--;
+            else
+                this.monitoring.patience = this.maxPatience;
         }, 100);
     }
 
@@ -102,41 +93,39 @@ class Requester {
     }
 
     async post<T>(url: string, data?: any, config?: AxiosRequestConfig<any>): Promise<any> {
-        let proxy;
 
-        while (true) {
+        if (this.waitUntil.getTime() > new Date().getTime())
+            await new Promise((resolve) => setTimeout(resolve, this.waitUntil.getTime() - new Date().getTime() + Math.random() * 1000));
+
+        // Throttling
+        await this.limiter.removeTokens(1);
+
+        this.monitoring.numRequests++;
+
+        let httpsAgent: HttpsProxyAgent<string> | undefined;
+
+        if (this.pool) {
+            const proxy = await this.pool.get();
+            httpsAgent = new HttpsProxyAgent(proxy);
+        }
+
+        let response;
+        while (!response) {
             try {
-                if(this.waitUntil.getTime() > new Date().getTime())
-                    await new Promise((resolve) => setTimeout(resolve, this.waitUntil.getTime() - new Date().getTime() + Math.random()*1000));
-
-                // Throttling
-                await this.limiter.removeTokens(1);
-
-                this.monitoring.numRequests++;
-                
-                //proxy = await this.pool.get();
-                //const proxyAgent = new HttpsProxyAgent(proxy);
-
-                const response = await this.axios.post<T>(url, data, {
+                response = await this.axios.post<T>(url, data, {
                     ...config,
-                    headers: {
-                        ...config?.headers,
-                        "User-Agent": userAgent.getRandom(),
-                    },
-                    //httpsAgent: proxyAgent
+                    httpsAgent
                 });
-
-                this.monitoring.numSuccess++;
-                this.monitoring.numSuccessSinceCheckpoint++;
-
-                return response.data;
-            }
-            catch (error) {
-                //fs.appendFileSync("out", JSON.stringify(error));
-                //proxy = await this.pool.get();
+            } catch (e) {
+                console.log("[Requester] An error occured ("+e.response?.statusText+") while fetching. Retrying...");
             }
         }
+
+        this.monitoring.numSuccess++;
+        this.monitoring.numSuccessSinceCheckpoint++;
+
+        return response.data;
     }
-} 
+}
 
 export default Requester;

@@ -58,4 +58,10 @@ interface UYAPBase64File {
     version: string
 }
 
-export {UYAPLegislationMetadata, UYAPLegislationTreeNode, PaginationResponse, TreeResponse, ArticleResponse, UYAPBase64File};
+interface CVClause {
+    text: string, 
+    numTokens:number
+}
+
+
+export {UYAPLegislationMetadata, UYAPLegislationTreeNode, PaginationResponse, TreeResponse, ArticleResponse, UYAPBase64File, CVClause};

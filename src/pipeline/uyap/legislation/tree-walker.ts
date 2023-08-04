@@ -3,6 +3,7 @@ import CVLegislationTree from "./model/legislation-tree";
 
 /** 
  *  @description This class is used to walk through the tree and return the leaves.
+ *  Gets the root node, passes leaf nodes to the pipeline. CVLegislationTree -> CVLegislationTree
 */
 class TreeWalker extends Pipeable<CVLegislationTree, CVLegislationTree> {
 

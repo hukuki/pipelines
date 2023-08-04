@@ -28,10 +28,18 @@ class TextExtractor extends Pipeable<CVBufferFile, CVBufferFile> {
                     {
                         selector: 'i',
                         format: 'skip'
+                    },
+                    {
+                        selector: 'img',
+                        format: 'skip'
                     }
                 ]
             });
-            
+
+            /**
+             *  Next lines might be shortened later.
+             */
+
             let pieces = text.split(/\n+/);
             pieces = pieces.filter(piece => piece.length > 0);
             pieces = pieces.map(piece => (piece[0] == "-" || piece[0] == "–")  ? piece.substring(1) : piece);
@@ -49,13 +57,13 @@ class TextExtractor extends Pipeable<CVBufferFile, CVBufferFile> {
             pieces = pieces.map(piece => piece.trim());
             pieces = pieces.map(piece => piece.replace("(…)", ""));
             pieces = pieces.map(piece => piece.trim());
-
+            
             pieces = pieces.filter(piece => piece.length > 10);
 
             if(pieces.length === 0) return;
             
             text = pieces.join("\n");
-            const content =  Buffer.from(text);
+            const content = Buffer.from(text);
 
             const path = prev.filename.split("/");
             const filename = path[path.length - 1];

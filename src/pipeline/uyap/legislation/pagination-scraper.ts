@@ -30,20 +30,14 @@ class PaginationScraper extends Pipeable<never, CVLegislationMetadata> {
             this.to = Math.ceil(numTotalItems / this.pageSize) + 1;
         }
 
-        const promises = [];
         for (let i = this.from; i < this.to; i++) {
-                            promises.push(this.scrapePage(i)
-                                        .then(page =>
-                                                    Promise.all(
-                                                        page.map(async legislation => {
-                                                            const out = this.convertToOutputFormat(legislation);
-                                                            await this.next?.run(out);
-                                                            return 
-                                                        })
-                                                    )
-                            ));
+            const page = await this.scrapePage(i);
+            
+            for (const legislation of page) {
+                const out = this.convertToOutputFormat(legislation);
+                await this.next?.run(out);
+            }
         }
-        await Promise.all(promises);
     }
 
     private async scrapePage(pageNumber: number): Promise<UYAPLegislationMetadata[]> {

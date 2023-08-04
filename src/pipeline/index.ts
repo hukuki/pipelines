@@ -15,6 +15,10 @@ abstract class Pipeable<InputType, ReturnType> {
     public get next(): Pipeable<ReturnType, any> | undefined {
         return this._next;
     }
+
+    public get name(): string {
+        return this.constructor.name;
+    }
 }
 type AnyFunc = (...arg: any) => any;
 

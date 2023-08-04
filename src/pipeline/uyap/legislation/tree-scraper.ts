@@ -29,7 +29,7 @@ class TreeScraper extends Pipeable<CVLegislationMetadata, CVLegislationTree> {
             
             await  this.next?.run(out);
         } else {
-            console.log(response);
+            console.log("Skipping legislation #"+ prev.providerId + " because it has no tree structure available.");
         }
     }
 

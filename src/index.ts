@@ -2,25 +2,23 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import connection from "./storage/db";
+import CVLegislationTree from "./pipeline/uyap/legislation/model/legislation-tree";
 import pipeline from './pipeline';
-import PaginationScraper from './pipeline/uyap/legislation/pagination-scraper';
-import TreeScraper from './pipeline/uyap/legislation/tree-scraper';
-import TreeWalker from "./pipeline/uyap/legislation/tree-walker";
-import FSSaver from "./pipeline/base/fs-saver";
-import ArticleScraper from './pipeline/uyap/legislation/article-scraper';
+import ConsoleLog from "./pipeline/base/console-log";
+import MongoIterator from "./pipeline/base/mongo-iterate";
+import ContentPopulator from "./pipeline/uyap/legislation/combine/content-populator";
+import { JsxEmit } from "typescript";
+import FsJsonSaver from "./pipeline/uyap/legislation/combine/fs-json-saver";
 
 
 connection.once('open', async () => {
     const pipe = pipeline(
-        new PaginationScraper(),
-        new TreeScraper(),
-        new TreeWalker(),
-        new ArticleScraper(),
-        new FSSaver({
-            folder: "dummy"
-        })
+        new MongoIterator({from: CVLegislationTree}),
+        new ContentPopulator({bucket: "casevisor-legislation", folder: "article/raw"}),
+        //new ConsoleLog(),
+        new FsJsonSaver({folder: "article/json"})
     );
 
-    await pipe.run();
-    await connection.close();
+    await pipe.run({providerLegislationId: 103107});
+    //await connection.close();
 });

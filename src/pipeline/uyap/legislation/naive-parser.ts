@@ -5,8 +5,8 @@ import Parser from './parser';
 class NaiveParser extends Parser{
 
     public async run(prev: CVBufferFile): Promise<any> {
-        /*
         const text = prev.content.toString();
+        
         let pieces = text.split(/\n+/);
 
         pieces = this.clean(pieces);
@@ -17,7 +17,6 @@ class NaiveParser extends Parser{
         let sentences = await this.splitSentences(article);
         let clauses = await this.splitClauses(sentences);
                 
-        console.log(JSON.stringify(clauses, null, 4));
 
         /*
         text = pieces.join("\n");

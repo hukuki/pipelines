@@ -7,32 +7,25 @@ abstract class Parser extends Pipeable<CVBufferFile, string[]>{
     
     protected static readonly SOFT_MAX_NUM_TOKENS = 350;
 
-    private static _tokenizer: any;
+    private static tokenizer: any;
     private static nltk: any;
     
-    /*
-    
-    protected get tokenizer(): any {
+    protected async tokenize(text: string): Promise<string[]> {
         if(!Parser.tokenizer){
             const { AutoTokenizer } = await python('transformers');
-
             Parser.tokenizer = await AutoTokenizer.from_pretrained("dbmdz/bert-base-turkish-cased");
         }
-        
-        const tokens = await (Parser.tokenizer.tokenize(text)) as string[];
+
+        const tokens = (await Parser.tokenizer.tokenize(text)).valueOf() as string[];
 
         return tokens;
     }
 
     protected splitClauses = async (pieces: string[]): Promise<CVClause[]> => {
-        /*
-        console.log(await (this.tokenize("lol")))
         const tokens = (await Promise.all(pieces.map(this.tokenize)));
-        console.log(tokens);
+        
         let numTokens = tokens.map(t => t.length);
 
-        console.log(numTokens)
-        console.log("in", pieces);
         pieces = pieces.map((piece, index) => {
             const n = numTokens[index];
 
@@ -49,8 +42,6 @@ abstract class Parser extends Pipeable<CVBufferFile, string[]>{
             return prev.concat(curr);
         }, []);
 
-        console.log("out", pieces);
-        
         numTokens = await Promise.all(pieces.map(this.tokenize).map(async t=> (await t).length));
         
         const totalNumTokens = numTokens.reduce((a, b) => a + b, 0);
@@ -104,7 +95,7 @@ abstract class Parser extends Pipeable<CVBufferFile, string[]>{
             Parser.nltk = await python('nltk');
         }
 
-        const sentences = await Parser.nltk.tokenize.sent_tokenize(text) as string[];
+        const sentences = (await Parser.nltk.tokenize.sent_tokenize(text)).valueOf() as string[];
 
         return sentences;
     }
@@ -132,7 +123,6 @@ abstract class Parser extends Pipeable<CVBufferFile, string[]>{
 
         return pieces;
     }
-    */
 }
 
 export default Parser;

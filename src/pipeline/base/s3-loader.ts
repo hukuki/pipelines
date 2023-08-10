@@ -42,10 +42,10 @@ class S3Loader extends Pipeable<never, CVBufferFile>{
     
                 await this.limiter.removeTokens(1);
                 
-                getFile({ bucket: this.bucket, filename: key }).then(file => {
+                getFile({ bucket: this.bucket, filename: key }).then(async file => {
                     if (!file) return;
     
-                    this.next?.run({
+                    await this.next?.run({
                         filename: key,
                         content: file
                     });

@@ -10,6 +10,8 @@ class Collector<InputType> extends Pipeable<InputType, InputType> {
 
     public async run(prev?: InputType): Promise<any> {
         this.collector.push(prev);
+
+        await this.next?.run(prev);
     }
 
     public get result() {

@@ -7,7 +7,7 @@ import CVLegislationTree from "./model/legislation-tree";
 */
 class TreeWalker extends Pipeable<CVLegislationTree, CVLegislationTree> {
 
-    public async run(prev: CVLegislationTree) {
+    public async run(prev: CVLegislationTree): Promise<any> {
         for (const child of prev.children) {
             await this.run(child);
         }

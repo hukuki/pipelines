@@ -5,11 +5,12 @@ import Parser from './parser';
 class AlphaParser extends Parser{
 
     public async run(prev: CVBufferFile): Promise<any> {
-        /*
         const text = prev.content.toString();
         
         let pieces = text.split(/\n+/);
         
+        // Initial cleaning
+
         pieces = pieces.filter(piece => piece.length > 0);
         pieces = pieces.map(piece => (piece[0] == "-" || piece[0] == "–")  ? piece.substring(1) : piece);
         pieces = pieces.map(piece => piece.replace("_", ""));
@@ -22,7 +23,7 @@ class AlphaParser extends Parser{
         const firstPiece = pieces[0];
 
         if(!(/^\([0-9]+\)/g.test(firstPiece)))
-            this.error();
+            this.error("Expected (1)");
 
         let index = 0;
         let clauses = [];
@@ -39,9 +40,6 @@ class AlphaParser extends Parser{
         if(index == 0 || index + 1 != pieces.length)
             clauses.push(pieces.slice(index, pieces.length));
         
-        if(clauses[0].length === 0)
-            this.error();
-
         clauses = clauses.map(this.clean);
 
         if(clauses.length === 0) 
@@ -49,24 +47,25 @@ class AlphaParser extends Parser{
 
         clauses = clauses.map(clause => clause.join("\n"));
         clauses = await Promise.all(clauses.map(this.splitSentences));
-        clauses = clauses.map(this.splitClauses);
-        
-        console.log(JSON.stringify(clauses, null, 4));
+        clauses = await Promise.all(clauses.map(this.splitPieces));
+        clauses = await Promise.all(clauses.map(this.mergePieces));
 
-        /*
-        text = pieces.join("\n");
-        const content =  Buffer.from(text);
+        for(const clause of clauses){
+            const piecesWithMetadata = clause.map(piece => ({
+                content: piece,
+                metadata: prev.metadata
+            }));
+            
+            for(const piece of piecesWithMetadata){
+                if(piece.content.length < Parser.IGNORE_MIN_NUM_CHARS) continue;
 
-        const path = prev.filename.split("/");
-        const filename = path[path.length - 1];
-        */
-        await this.next?.run([
-
-        ]);
+                await this.next?.run(piece);            
+            }
+        }
     }
 
-    private error(){
-        throw new Error("Text does not obey the specification.");
+    private error(msg?: string){
+        throw new Error("Text does not obey the specification : "+ msg);
     }
 }
 

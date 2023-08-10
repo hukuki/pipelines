@@ -3,3 +3,5 @@ dist/
 .env
 out
 __s3__/
+.DS_Store
+*.ipynb

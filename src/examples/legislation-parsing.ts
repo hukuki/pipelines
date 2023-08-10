@@ -1,3 +1,4 @@
+/*
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -21,7 +22,6 @@ import CVLegislationMetadata from './pipeline/uyap/legislation/model/legislation
 import MongoFinder from "./pipeline/base/mongo-find";
 import Map from "./pipeline/base/map";
 import { ParserOutput } from "./pipeline/uyap/legislation/parser";
-
 
 connection.once('open', async () => {
     const pipe = pipeline(
@@ -52,16 +52,14 @@ connection.once('open', async () => {
             ],
             keys: ["content", "metadata.article", "metadata.legislation"]
         }),
-
         new Map((doc: any) => (
             {
                 filename: doc?.metadata?.article?.providerArticleId + "-" + Math.random().toString(36).substring(7) + ".json",
                 content: Buffer.from(JSON.stringify(doc))
             }
         )),
-
         new FSSaver({
-            folder: '__s3__/article/parsed',
+            folder: '__s3__/article/parsed2',
         }),
     );
 
@@ -71,3 +69,4 @@ connection.once('open', async () => {
 
     await connection.close();
 });
+*/

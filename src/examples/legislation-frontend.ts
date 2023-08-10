@@ -1,3 +1,4 @@
+/*
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -26,3 +27,5 @@ connection.once('open', async () => {
 
     await pipe.run();//{providerLegislationId: 103107});
 });
+
+*/

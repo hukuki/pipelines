@@ -38,13 +38,11 @@ class ContentPopulator extends Pipeable<CVLegislationTree, CVLegislationOutput> 
     }
 
     public async run(prev: CVLegislationTree) {
-
         const out = this.convertToOutput(prev);
 
         await this.traverse(out);
 
         await this.next?.run(out);
-
     }
 
     private async traverse(prev: CVLegislationOutput) {
@@ -61,9 +59,7 @@ class ContentPopulator extends Pipeable<CVLegislationTree, CVLegislationOutput> 
             const fileStr = file.toString('utf-8');
             const text = this.processHtml(fileStr, [prev.articleTitle || ""]); 
             prev.content = text;
-            //console.log(prev);
         }
-    
     }
 
 

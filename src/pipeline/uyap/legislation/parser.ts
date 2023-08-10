@@ -3,9 +3,15 @@ import { Pipeable } from '../../../pipeline';
 import { CVBufferFile } from '../../../pipeline/interface';
 import { CVClause } from './interface';
 
-abstract class Parser extends Pipeable<CVBufferFile, string[]>{
+export type ParserOutput  = {
+    content: string,
+    metadata?: object
+};
+
+abstract class Parser extends Pipeable<CVBufferFile, ParserOutput>{
     
     protected static readonly SOFT_MAX_NUM_TOKENS = 350;
+    protected static readonly IGNORE_MIN_NUM_CHARS = 20;
 
     private static tokenizer: any;
     private static nltk: any;
@@ -21,35 +27,68 @@ abstract class Parser extends Pipeable<CVBufferFile, string[]>{
         return tokens;
     }
 
-    protected splitClauses = async (pieces: string[]): Promise<CVClause[]> => {
-        const tokens = (await Promise.all(pieces.map(this.tokenize)));
+    protected async splitSentences(text: string): Promise<string[]> {
+        if(!Parser.nltk){
+            Parser.nltk = await python('nltk');
+        }
+
+        const sentences = (await Parser.nltk.tokenize.sent_tokenize(text)).valueOf() as string[];
+
+        return sentences;
+    }
+
+    /**
+     * A function to return a list of strings, each of which is a piece of the original string.
+     * It aims to create chunks that are smaller than the soft limit, so that they are embeddable.
+     * 
+     * It checks if each piece is smaller than the soft limit. If it is not, it splits it into smaller pieces.
+     * 
+     * @param pieces An array of strings to be split.
+     * @returns 
+     */
+    protected splitPieces = async (pieces: string[]): Promise<string[]> => {
+        // A piece might be longer that our soft limit.
+        // If so, we split it into smaller pieces.
         
-        let numTokens = tokens.map(t => t.length);
+        const splittedPieces = [];
 
-        pieces = pieces.map((piece, index) => {
-            const n = numTokens[index];
+        for(let i = 0; i < pieces.length; i++){
+            const piece = pieces[i];
+            const tokens = await this.tokenize(piece);
+            const numTokens = tokens.length;
+            
+            if(numTokens <= Parser.SOFT_MAX_NUM_TOKENS) {
+                splittedPieces.push(piece);
+                continue;
+            }
 
-            if(n <= Parser.SOFT_MAX_NUM_TOKENS) 
-                return [piece];
-
-            const numBuckets = Math.ceil(n / Parser.SOFT_MAX_NUM_TOKENS);
-            const bucketSize = Math.ceil(n / numBuckets);
+            const numBuckets = Math.ceil(numTokens / Parser.SOFT_MAX_NUM_TOKENS);
+            const bucketSize = Math.ceil(numTokens / numBuckets);
 
             const texts = this.splitString(piece, bucketSize);
             
-            return texts;
-        }).reduce((prev, curr)=>{
-            return prev.concat(curr);
-        }, []);
+            splittedPieces.push(...texts);
+        }
 
-        numTokens = await Promise.all(pieces.map(this.tokenize).map(async t=> (await t).length));
+        return splittedPieces;
+    }
+
+
+    /**
+     * It merges given pieces into chunks that are smaller than the soft limit.
+     * 
+     * @param pieces An array of strings to be merged.
+     * @returns Merged pieces
+     */
+    protected mergePieces = async (pieces: string[]): Promise<string[]> => {
+        const numTokensPerClause = await Promise.all(pieces.map(this.tokenize).map(async t=> (await t).length));
         
-        const totalNumTokens = numTokens.reduce((a, b) => a + b, 0);
+        const totalNumTokens = numTokensPerClause.reduce((a, b) => a + b, 0);
 
         const numBuckets = Math.ceil(totalNumTokens / Parser.SOFT_MAX_NUM_TOKENS);
         const bucketSize = Math.ceil(totalNumTokens / numBuckets);
         
-        const clauses: CVClause[] = [];
+        const clauses: string[] = [];
         
         // Starter empty clause
         let emptyClause = {
@@ -62,10 +101,10 @@ abstract class Parser extends Pipeable<CVBufferFile, string[]>{
 
         for (let i = 0; i < pieces.length; i++) {
             const piece = pieces[i];
-            const token = numTokens[i];
+            const token = numTokensPerClause[i];
 
             if (token + clause.numTokens > bucketSize) {
-                clauses.push(clause);
+                clauses.push(clause.text);
                 
                 clause = {...emptyClause};
             }
@@ -75,11 +114,17 @@ abstract class Parser extends Pipeable<CVBufferFile, string[]>{
         }
 
         if(clause.text != "")
-            clauses.push(clause);
+            clauses.push(clause.text);
         
         return clauses;
     }
 
+    /**
+     * Returns an array of equally sized strings, each of which is a chunk of the original string.
+     * @param str String to split into equally sized chunks
+     * @param N Number of chunks
+     * @returns Array of chunks
+     */
     protected splitString(str: string, N: number) {
         const arr = [];
       
@@ -90,23 +135,20 @@ abstract class Parser extends Pipeable<CVBufferFile, string[]>{
         return arr;
     }
 
-    protected async splitSentences(text: string): Promise<string[]> {
-        if(!Parser.nltk){
-            Parser.nltk = await python('nltk');
-        }
-
-        const sentences = (await Parser.nltk.tokenize.sent_tokenize(text)).valueOf() as string[];
-
-        return sentences;
-    }
-
+    /**
+     * Cleans the given pieces of text. Turkish legislation contains a lot of noise, this function tries to remove it.
+     * For example, things like (1), a), 1., etc. are removed. These are not useful for training a model.
+     * 
+     * However, note that this is only initial cleaning. In python pipeline for training, we do more cleaning.
+     * 
+     * @param pieces Pieces of text to clean
+     * @returns Cleaned pieces of text
+     */
     protected clean(pieces: string[]): string[] {
         pieces = pieces.filter(piece => piece.length > 0);
 
         pieces = pieces.map(piece => (piece[0] == "-" || piece[0] == "–") ? piece.substring(1) : piece);
         pieces = pieces.map(piece => piece.replace("_", ""));
-        pieces = pieces.map(piece => piece.trim());
-        pieces = pieces.map(piece => piece.replace(/^\([0-9]+\)/g, ""));
         pieces = pieces.map(piece => piece.trim());
         pieces = pieces.map(piece => piece.replace(/^[a-züşöçğı]+\)/g, ""));
         pieces = pieces.map(piece => piece.trim());
@@ -117,9 +159,10 @@ abstract class Parser extends Pipeable<CVBufferFile, string[]>{
         pieces = pieces.map(piece => piece.replace(/^[0-9]+\.\s/g, ""));
         pieces = pieces.map(piece => piece.trim());
         pieces = pieces.map(piece => piece.replace("(…)", ""));
-        pieces = pieces.map(piece => piece.replace("(…)", ""));
         pieces = pieces.map(piece => piece.trim());
-        pieces = pieces.filter(piece => piece.length > 10);
+        pieces = pieces.map(piece => piece.replace(/^\([0-9]+\)/g, ""));
+        pieces = pieces.map(piece => piece.trim());
+        pieces = pieces.filter(piece => piece.length > Parser.IGNORE_MIN_NUM_CHARS);
 
         return pieces;
     }

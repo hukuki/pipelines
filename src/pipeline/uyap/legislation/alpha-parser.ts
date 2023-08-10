@@ -47,21 +47,21 @@ class AlphaParser extends Parser{
 
         clauses = clauses.map(clause => clause.join("\n"));
         clauses = await Promise.all(clauses.map(this.splitSentences));
-        clauses = await Promise.all(clauses.map(this.splitClauses));
-        
-        console.log(JSON.stringify(clauses, null, 4));
-        
-        /*
-        text = pieces.join("\n");
-        const content =  Buffer.from(text);
+        clauses = await Promise.all(clauses.map(this.splitPieces));
+        clauses = await Promise.all(clauses.map(this.mergePieces));
 
-        const path = prev.filename.split("/");
-        const filename = path[path.length - 1];
-        */
+        for(const clause of clauses){
+            const piecesWithMetadata = clause.map(piece => ({
+                content: piece,
+                metadata: prev.metadata
+            }));
+            
+            for(const piece of piecesWithMetadata){
+                if(piece.content.length < Parser.IGNORE_MIN_NUM_CHARS) continue;
 
-        await this.next?.run([
-
-        ]);
+                await this.next?.run(piece);            
+            }
+        }
     }
 
     private error(msg?: string){

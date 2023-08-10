@@ -2,33 +2,31 @@ import { Pipeable } from '../..';
 import { CVBufferFile } from '../../interface';
 import Parser from './parser';
 
-class NaiveParser extends Parser{
+class NaiveParser extends Parser {
 
     public async run(prev: CVBufferFile): Promise<any> {
         const text = prev.content.toString();
-        
-        let pieces = text.split(/\n+/);
 
-        pieces = this.clean(pieces);
+        let paragraphs = text.split(/\n+/);
+        paragraphs = this.clean(paragraphs);
 
-        if (pieces.length === 0) return;
+        if (paragraphs.length === 0) return;
 
-        let article = pieces.join("\n");
+        let article = paragraphs.join("\n");
         let sentences = await this.splitSentences(article);
-        let clauses = await this.splitClauses(sentences);
-                
+        let pieces = await this.splitPieces(sentences);
+        let mergedPieces = await this.mergePieces(pieces);
+        
+        let piecesWithMetadata = mergedPieces.map(piece => ({
+            content: piece,
+            metadata: prev.metadata}
+        ));
 
-        /*
-        text = pieces.join("\n");
-        const content =  Buffer.from(text);
+        for(const piece of piecesWithMetadata){
+            if(piece.content.length < Parser.IGNORE_MIN_NUM_CHARS) continue;
 
-        const path = prev.filename.split("/");
-        const filename = path[path.length - 1];
-        */
-
-        await this.next?.run([
-            
-        ]);
+            await this.next?.run(piece);
+        }
     }
 }
 

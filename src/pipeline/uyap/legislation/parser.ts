@@ -32,7 +32,7 @@ abstract class Parser extends Pipeable<CVBufferFile, ParserOutput>{
             Parser.nltk = await python('nltk');
         }
 
-        const sentences = (await Parser.nltk.tokenize.sent_tokenize(text)).valueOf() as string[];
+        const sentences = (await Parser.nltk.tokenize.sent_tokenize(text, language: "turkish")).valueOf() as string[];
 
         return sentences;
     }

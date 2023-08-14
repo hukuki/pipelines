@@ -15,7 +15,6 @@ class AlphaParser extends Parser{
         pieces = pieces.map(piece => (piece[0] == "-" || piece[0] == "–")  ? piece.substring(1) : piece);
         pieces = pieces.map(piece => piece.replace("_", ""));
         pieces = pieces.map(piece => piece.trim());
-        pieces = pieces.filter(piece => piece.length > 10);
 
         if(pieces.length === 0) 
             this.error();
@@ -58,7 +57,7 @@ class AlphaParser extends Parser{
             
             for(const piece of piecesWithMetadata){
                 if(piece.content.length < Parser.IGNORE_MIN_NUM_CHARS) continue;
-
+                
                 await this.next?.run(piece);            
             }
         }

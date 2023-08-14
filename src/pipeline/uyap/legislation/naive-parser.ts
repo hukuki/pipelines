@@ -9,7 +9,7 @@ class NaiveParser extends Parser {
 
         let paragraphs = text.split(/\n+/);
         paragraphs = this.clean(paragraphs);
-
+        
         if (paragraphs.length === 0) return;
 
         let article = paragraphs.join("\n");

@@ -11,7 +11,7 @@ export type ParserOutput  = {
 abstract class Parser extends Pipeable<CVBufferFile, ParserOutput>{
     
     protected static readonly SOFT_MAX_NUM_TOKENS = 350;
-    protected static readonly IGNORE_MIN_NUM_CHARS = 20;
+    protected static readonly IGNORE_MIN_NUM_WORDS = 7;
 
     private static tokenizer: any;
     private static nltk: any;

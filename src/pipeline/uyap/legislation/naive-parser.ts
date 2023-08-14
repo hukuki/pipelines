@@ -9,7 +9,7 @@ class NaiveParser extends Parser {
 
         let paragraphs = text.split(/\n+/);
         paragraphs = this.clean(paragraphs);
-        
+
         if (paragraphs.length === 0) return;
 
         let article = paragraphs.join("\n");
@@ -23,7 +23,9 @@ class NaiveParser extends Parser {
         ));
 
         for(const piece of piecesWithMetadata){
-            if(piece.content.length < Parser.IGNORE_MIN_NUM_CHARS) continue;
+            const numWords = piece.content.split(/\s+/).length;
+
+            if(piece.content.length < Parser.IGNORE_MIN_NUM_WORDS) continue;
 
             await this.next?.run(piece);
         }

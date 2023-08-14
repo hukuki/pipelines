@@ -16,7 +16,7 @@ class FSSaver extends Pipeable<object, object> {
     private contentKey: string;
     private as: FSSaverMode;
 
-    constructor({ folder, nameKey, contentKey, as = FSSaverMode.BINARY}: { nameKey: string, contentKey?: string, folder: string, as: FSSaverMode }){
+    constructor({ folder, nameKey, contentKey = "", as = FSSaverMode.BINARY}: { nameKey: string, contentKey?: string, folder: string, as: FSSaverMode }){
         super();
 
         this.nameKey = nameKey;

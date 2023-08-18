@@ -1,7 +1,8 @@
 import { python } from 'pythonia'
 import { Pipeable } from '../../../pipeline';
 import { CVBufferFile } from '../../../pipeline/interface';
-import { CVClause } from './interface';
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { Document } from 'langchain/document';
 
 export type ParserOutput  = {
     content: string,
@@ -11,10 +12,12 @@ export type ParserOutput  = {
 abstract class Parser extends Pipeable<CVBufferFile, ParserOutput>{
     
     protected static readonly SOFT_MAX_NUM_TOKENS = 350;
-    protected static readonly IGNORE_MIN_NUM_CHARS = 20;
-
+    protected static readonly IGNORE_MIN_NUM_WORDS = 7;
+    protected static readonly IGNORE_MIN_NUM_CHARS = 3;
+    
     private static tokenizer: any;
     private static nltk: any;
+    private static recursiveSplitter: RecursiveCharacterTextSplitter;
     
     protected async tokenize(text: string): Promise<string[]> {
         if(!Parser.tokenizer){
@@ -73,6 +76,21 @@ abstract class Parser extends Pipeable<CVBufferFile, ParserOutput>{
         return splittedPieces;
     }
 
+    protected async splitRecursively(text: string): Promise<string[]> {
+        if(!Parser.recursiveSplitter){
+            Parser.recursiveSplitter = new RecursiveCharacterTextSplitter({
+                lengthFunction: async (text: string) => (await this.tokenize(text)).length,
+                chunkSize: Parser.SOFT_MAX_NUM_TOKENS,
+                chunkOverlap: 0
+            });
+        }
+
+        const docOutput = await Parser.recursiveSplitter.splitDocuments([
+            new Document({ pageContent: text }),
+        ]);
+        
+        return docOutput.map(doc => doc.pageContent);
+    }
 
     /**
      * It merges given pieces into chunks that are smaller than the soft limit.

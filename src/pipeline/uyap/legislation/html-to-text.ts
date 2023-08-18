@@ -22,6 +22,10 @@ class HtmlToText extends Pipeable<CVBufferFile, CVBufferFile>{
                         format: 'skip',
                     },
                     {
+                        selector: 'strong',
+                        format: 'skip',
+                    },
+                    {
                         selector: 'a',
                         format: 'skip'
                     },

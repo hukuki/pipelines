@@ -7,13 +7,13 @@ import fs from "fs";
 
 class Requester {
 
-    private static __singleton__: Requester = new Requester({ verbose: false });
+    private static __singleton__: Requester = new Requester({ verbose: true });
 
     private axios: AxiosInstance;
     private limiter: RateLimiter;
     private pool: ProxyPool | undefined;
     private waitUntil: Date;
-    private maxPatience = 200;
+    private maxPatience = 1000;
 
     private monitoring: {
         numRequests: number,
@@ -21,14 +21,16 @@ class Requester {
         startTime: Date,
         checkpointTime: Date,
         numSuccessSinceCheckpoint: number,
+        numFailedSinceCheckpoint: number,
         avgSuccessLastCheckpoint: number,
+        avgFailedLastCheckpoint: number,
         patience: number
     };
 
     private constructor({ pool, verbose = false }: { pool?: ProxyPool, verbose?: boolean }) {
         this.axios = axios.create(
             {
-                baseURL: 'https://bedesten.adalet.gov.tr/mevzuat/',
+                baseURL: 'https://bedesten.adalet.gov.tr/',
                 headers: { "Content-Type": "application/json" }
             }
         );
@@ -42,13 +44,15 @@ class Requester {
 
             checkpointTime: new Date(),
             numSuccessSinceCheckpoint: 0,
+            numFailedSinceCheckpoint: 0,
             avgSuccessLastCheckpoint: 0,
+            avgFailedLastCheckpoint: 0,
 
             patience: this.maxPatience,
         }
 
         this.limiter = new RateLimiter({
-            tokensPerInterval: 7,
+            tokensPerInterval: 10,
             interval: 1000,
         });
 
@@ -65,9 +69,12 @@ class Requester {
 
             if (sinceCheckpoint > 5000) {
                 this.monitoring.avgSuccessLastCheckpoint = this.monitoring.numSuccessSinceCheckpoint / 5;
+                this.monitoring.avgFailedLastCheckpoint = this.monitoring.numFailedSinceCheckpoint / 5;
+
 
                 this.monitoring.checkpointTime = new Date();
                 this.monitoring.numSuccessSinceCheckpoint = 0;
+                this.monitoring.numFailedSinceCheckpoint = 0;
             }
 
             const avgSuccess = this.monitoring.numSuccess / (new Date().getTime() - this.monitoring.startTime.getTime()) * 1000;
@@ -76,13 +83,14 @@ class Requester {
                 console.clear();
                 console.log("* time elapsed: " + (new Date().getTime() - this.monitoring.startTime.getTime()) / 1000 + " seconds");
                 console.log("* successful requests per second (s)     : " + this.monitoring.avgSuccessLastCheckpoint);
+                console.log("* failed requests per second (s)     : " + this.monitoring.avgFailedLastCheckpoint);
                 console.log("* successful requests per second (global): " + avgSuccess);
                 console.log("* success rate: " + (this.monitoring.numSuccess / this.monitoring.numRequests));
                 console.log("* patience: " + this.monitoring.patience);
             }
 
             if ((this.waitUntil.getTime() + 5000 < new Date().getTime()) && ((this.monitoring.avgSuccessLastCheckpoint < avgSuccess)))
-                this.monitoring.patience--;
+                1; //this.monitoring.patience--;
             else
                 this.monitoring.patience = this.maxPatience;
         }, 100);
@@ -94,11 +102,11 @@ class Requester {
 
     async post<T>(url: string, data?: any, config?: AxiosRequestConfig<any>): Promise<any> {
 
-        if (this.waitUntil.getTime() > new Date().getTime())
-            await new Promise((resolve) => setTimeout(resolve, this.waitUntil.getTime() - new Date().getTime() + Math.random() * 1000));
+        //if (this.waitUntil.getTime() > new Date().getTime())
+        //    await new Promise((resolve) => setTimeout(resolve, this.waitUntil.getTime() - new Date().getTime() + Math.random() * 1000));
 
         // Throttling
-        await this.limiter.removeTokens(1);
+        //await this.limiter.removeTokens(1);
 
         this.monitoring.numRequests++;
 
@@ -117,6 +125,8 @@ class Requester {
                     httpsAgent
                 });
             } catch (e) {
+                this.monitoring.numFailedSinceCheckpoint++;
+                this.monitoring.numRequests++;
                 console.log("[Requester] An error occured ("+e.response?.statusText+") while fetching. Retrying...");
             }
         }

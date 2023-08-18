@@ -21,9 +21,13 @@ import CVLegislationMetadata from './pipeline/uyap/legislation/model/legislation
 import MongoFinder from "./pipeline/base/mongo-find";
 import Map from "./pipeline/base/map";
 import { ParserOutput } from "./pipeline/uyap/legislation/parser";
+import PrecedentPaginationScraper from './pipeline/uyap/precedent/pagination-scraper';
+import MongoSaver from './pipeline/base/mongo-saver';
+import CVPrecedentMetadata from './pipeline/uyap/precedent/model/legislation-metadata';
 
 
 connection.once('open', async () => {
+    /*
     const pipe = pipeline(
         new TreeWalker(),
 
@@ -61,13 +65,22 @@ connection.once('open', async () => {
         )),
 
         new FSSaver({
-            folder: '__s3__/article/parsed',
+            folder: '__s3__/article/parsed2',
         }),
     );
 
     for await (const item of CVLegislationTree.find({}, {timeout: false})) {
         await pipe.run(item);
-    }
+    }*/
+
+    const pipe = pipeline(
+        new PrecedentPaginationScraper(),
+        new MongoSaver({
+            as: CVPrecedentMetadata
+        })
+    )
+    
+    await pipe.run();
 
     await connection.close();
 });

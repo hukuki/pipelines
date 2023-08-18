@@ -13,17 +13,18 @@ class NaiveParser extends Parser {
         if (paragraphs.length === 0) return;
 
         let article = paragraphs.join("\n");
-        let sentences = await this.splitSentences(article);
-        let pieces = await this.splitPieces(sentences);
-        let mergedPieces = await this.mergePieces(pieces);
+        let pieces = await this.splitRecursively(article);
         
-        let piecesWithMetadata = mergedPieces.map(piece => ({
+        let piecesWithMetadata = pieces.map(piece => ({
             content: piece,
             metadata: prev.metadata}
         ));
 
         for(const piece of piecesWithMetadata){
-            if(piece.content.length < Parser.IGNORE_MIN_NUM_CHARS) continue;
+            // split by multiple whitespaces
+            const numWords = piece.content.split(/\s+/).length;
+
+            if(numWords < Parser.IGNORE_MIN_NUM_WORDS) continue;
 
             await this.next?.run(piece);
         }

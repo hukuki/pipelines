@@ -26,6 +26,7 @@ class NaiveParser extends Parser {
 
             if(numWords < Parser.IGNORE_MIN_NUM_WORDS) continue;
 
+
             await this.next?.run(piece);
         }
     }

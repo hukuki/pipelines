@@ -19,6 +19,7 @@ class AlphaParser extends Parser{
         pieces = pieces.map(piece=>piece.trim());
         
         if(pieces.length === 0)
+
             this.error();
         
         const firstPiece = pieces[0];
@@ -62,7 +63,7 @@ class AlphaParser extends Parser{
                 const numWords = piece.content.split(/\s+/).length;
 
                 if(numWords < Parser.IGNORE_MIN_NUM_WORDS) continue;
-
+                
                 await this.next?.run(piece);            
             }
         }

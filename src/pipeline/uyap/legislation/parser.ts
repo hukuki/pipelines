@@ -35,7 +35,8 @@ abstract class Parser extends Pipeable<CVBufferFile, ParserOutput>{
             Parser.nltk = await python('nltk');
         }
 
-        const sentences = (await Parser.nltk.tokenize.sent_tokenize(text)).valueOf() as string[];
+        const language = "turkish"
+        const sentences = (await Parser.nltk.tokenize.sent_tokenize(text, language)).valueOf() as string[];
 
         return sentences;
     }
@@ -180,7 +181,6 @@ abstract class Parser extends Pipeable<CVBufferFile, ParserOutput>{
         pieces = pieces.map(piece => piece.trim());
         pieces = pieces.map(piece => piece.replace(/^\([0-9]+\)/g, ""));
         pieces = pieces.map(piece => piece.trim());
-        pieces = pieces.filter(piece => piece.length > Parser.IGNORE_MIN_NUM_CHARS);
 
         return pieces;
     }

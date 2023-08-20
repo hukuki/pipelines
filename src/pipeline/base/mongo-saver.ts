@@ -5,7 +5,6 @@ import { RateLimiter } from 'limiter';
 class MongoSaver<InputType extends FilterQuery<any>> extends Pipeable<InputType, InputType> {
     private model: Model<any>;
     private limiter: RateLimiter;
-    private worker: Worker;
 
     constructor(config: { as: Model<any> }) {
         super();

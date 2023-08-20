@@ -3,31 +3,21 @@ dotenv.config();
 
 import connection from "./storage/db";
 import pipeline from './pipeline';
-import PaginationScraper from './pipeline/uyap/legislation/pagination-scraper';
-import TreeScraper from './pipeline/uyap/legislation/tree-scraper';
 import TreeWalker from "./pipeline/uyap/legislation/tree-walker";
 import FSSaver from "./pipeline/base/fs-saver";
-import ArticleScraper from './pipeline/uyap/legislation/article-scraper';
 import HtmlToText from './pipeline/uyap/legislation/html-to-text';
 import FSLoader from './pipeline/base/fs-loader';
 import Fallback from './pipeline/base/fallback';
 import AlphaParser from './pipeline/uyap/legislation/alpha-parser';
 import NaiveParser from './pipeline/uyap/legislation/naive-parser';
 import CVLegislationTree from './pipeline/uyap/legislation/model/legislation-tree';
-import Logger from "./pipeline/base/logger";
 import Merge from "./pipeline/base/merge";
-import Identity from './pipeline/base/identity';
 import CVLegislationMetadata from './pipeline/uyap/legislation/model/legislation-metadata';
 import MongoFinder from "./pipeline/base/mongo-find";
 import Map from "./pipeline/base/map";
 import { ParserOutput } from "./pipeline/uyap/legislation/parser";
-import PrecedentPaginationScraper from './pipeline/uyap/precedent/pagination-scraper';
-import MongoSaver from './pipeline/base/mongo-saver';
-import CVPrecedentMetadata from './pipeline/uyap/precedent/model/legislation-metadata';
-
 
 connection.once('open', async () => {
-    /*
     const pipe = pipeline(
         new TreeWalker(),
 
@@ -63,23 +53,22 @@ connection.once('open', async () => {
                 content: Buffer.from(JSON.stringify(doc))
             }
         )),
-
         new FSSaver({
-            folder: '__s3__/article/parsed2',
+            folder: '__s3__/article/parsed-newest',
         }),
     );
 
     for await (const item of CVLegislationTree.find({}, {timeout: false})) {
         await pipe.run(item);
-    }*/
-
+    }
+    /*
     const pipe = pipeline(
         new PrecedentPaginationScraper(),
         new MongoSaver({
             as: CVPrecedentMetadata
         })
     )
-    
+    */
     await pipe.run();
 
     await connection.close();

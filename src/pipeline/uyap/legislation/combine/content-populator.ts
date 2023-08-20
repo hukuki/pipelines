@@ -71,43 +71,75 @@ class ContentPopulator extends Pipeable<CVLegislationTree, CVLegislationOutput> 
             selectors: [
                 { 
                     selector: 'table', 
-                    format: 'skip' 
+                    format: 'blockHtml' 
                 },
                 {
                     selector: 'b',
-                    format: 'skip',
+                    format: 'inlineSurround',
+                    options: {
+                        prefix: '<b>',
+                        suffix: '</b>'
+                    }
+                },
+                {
+                    selector: 'strong',
+                    format: 'inlineSurround',
+                    options: {
+                        prefix: '<b>',
+                        suffix: '</b>'
+                    }
                 },
                 {
                     selector: 'a',
                     format: 'skip'
                 },
                 {
-                    selector: 'i',
-                    format: 'skip'
+                    selector: 'h1',
+                    options: {
+                        uppercase: false,
+                    },
                 },
-                {
-                    selector: 'img',
-                    format: 'skip'
+                 {
+                    selector: 'h2',
+                    options: {
+                        uppercase: false,
+                    },
                 },
-                {
-                    selector: 'b',
-                    format: 'skip'
+                 {
+                    selector: 'h3',
+                    options: {
+                        uppercase: false,
+                    },
                 },
-                {
-                    selector: 'strong',
-                    format: 'skip'
+                 {
+                    selector: 'h4',
+                    options: {
+                        uppercase: false,
+                    },
+                },
+                 {
+                    selector: 'h5',
+                    options: {
+                        uppercase: false,
+                    },
+                },
+                 {
+                    selector: 'h6',
+                    options: {
+                        uppercase: false,
+                    },
                 }
+                
             ]
         });
 
         let pieces = text.split(/\n+/);
         pieces = pieces.filter(piece => piece.length > 0);
-
         text = pieces.join("\n");
-
-        // for (const remove of removeList) {
-        //     text = text.replace(remove, "");
-        // }
+        
+        // if piece has bold text
+        text = text.replace(/^.*[mM][aA][dD][dD][eE][^<]*<\/b>/s, "");
+        console.log(text);
 
         return text;
     }

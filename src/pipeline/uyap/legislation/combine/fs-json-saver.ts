@@ -15,7 +15,7 @@ class FsJsonSaver extends Pipeable<CVLegislationTree, CVLegislationTree> {
 
     public async run(prev: CVLegislationTree): Promise<any> {
         // save the onject as json
-        fs.writeFileSync(`${this.folder}/${prev.providerLegislationId}.json`, JSON.stringify(prev));
+        fs.writeFileSync(`${this.folder}/${prev.providerLegislationId}.json`, JSON.stringify(prev, null, 4));
     }
 }
 

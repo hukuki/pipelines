@@ -44,13 +44,13 @@ class PaginationScraper extends Pipeable<never, CVLegislationMetadata> {
         const requestBody = _.cloneDeep(this.boilerplate);
         requestBody.data.pageNumber = pageNumber;
 
-        const pagination = await this.instance.post<PaginationResponse>("searchDocuments", requestBody);
+        const pagination = await this.instance.post<PaginationResponse>("mevzuat/searchDocuments", requestBody);
 
         return pagination.data.mevzuatList;
     }
 
     private async getTotalItems(): Promise<number> {
-        const response = await this.instance.post<PaginationResponse>("searchDocuments", this.boilerplate);
+        const response = await this.instance.post<PaginationResponse>("mevzuat/searchDocuments", this.boilerplate);
         const data = response.data;
 
         return data.total;

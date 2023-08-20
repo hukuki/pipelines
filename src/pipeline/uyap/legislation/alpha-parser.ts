@@ -15,8 +15,11 @@ class AlphaParser extends Parser{
         pieces = pieces.map(piece => (piece[0] == "-" || piece[0] == "–")  ? piece.substring(1) : piece);
         pieces = pieces.map(piece => piece.replace("_", ""));
         pieces = pieces.map(piece => piece.trim());
+        pieces = pieces.filter(piece => piece.length > Parser.IGNORE_MIN_NUM_CHARS);
+        pieces = pieces.map(piece=>piece.trim());
+        
+        if(pieces.length === 0)
 
-        if(pieces.length === 0) 
             this.error();
         
         const firstPiece = pieces[0];
@@ -44,7 +47,7 @@ class AlphaParser extends Parser{
         if(clauses.length === 0) 
             this.error();
 
-        clauses = clauses.map(clause => clause.join("\n"));
+        clauses = clauses.map(clause => clause.join("\n"));        
         clauses = await Promise.all(clauses.map(this.splitSentences));
         clauses = await Promise.all(clauses.map(this.splitPieces));
         clauses = await Promise.all(clauses.map(this.mergePieces));
@@ -56,6 +59,7 @@ class AlphaParser extends Parser{
             }));
             
             for(const piece of piecesWithMetadata){
+                // split by multiple whitespaces
                 const numWords = piece.content.split(/\s+/).length;
 
                 if(numWords < Parser.IGNORE_MIN_NUM_WORDS) continue;

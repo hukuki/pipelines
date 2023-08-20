@@ -22,7 +22,7 @@ class TreeScraper extends Pipeable<CVLegislationMetadata, CVLegislationTree> {
         const requestData = _.cloneDeep(this.boilerplate);
         requestData.data.mevzuatId = `${id}`;
 
-        const response = await this.instance.post<TreeResponse>("mevzuatMaddeTree", requestData);
+        const response = await this.instance.post<TreeResponse>("mevzuat/mevzuatMaddeTree", requestData);
         
         if (response.data) {
             const out = this.convertToOutputFormat(response.data);

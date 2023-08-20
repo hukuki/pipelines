@@ -26,7 +26,7 @@ class ArticleScraper extends Pipeable<CVLegislationTree, CVBufferFile> {
         const requestData = _.cloneDeep(this.boilerplate);
         requestData.data.maddeId = `${id}`;
         
-        const response: ArticleResponse = await this.instance.post<ArticleResponse>("getDocument", requestData);
+        const response: ArticleResponse = await this.instance.post<ArticleResponse>("mevzuat/getDocument", requestData);
         const file: UYAPBase64File = response.data;
         
         const buffer = Buffer.from(file.content, "base64");

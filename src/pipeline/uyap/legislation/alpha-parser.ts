@@ -19,7 +19,6 @@ class AlphaParser extends Parser{
         pieces = pieces.map(piece=>piece.trim());
         
         if(pieces.length === 0)
-
             this.error();
         
         const firstPiece = pieces[0];
@@ -38,9 +37,8 @@ class AlphaParser extends Parser{
                 index = i;
             }
         }
-
-        if(index == 0 || index + 1 != pieces.length)
-            clauses.push(pieces.slice(index, pieces.length));
+        
+        clauses.push(pieces.slice(index, pieces.length));
         
         clauses = clauses.map(this.clean);
 

@@ -52,7 +52,7 @@ class Requester {
         }
 
         this.limiter = new RateLimiter({
-            tokensPerInterval: 10,
+            tokensPerInterval: 5,
             interval: 1000,
         });
 
@@ -106,7 +106,7 @@ class Requester {
         //    await new Promise((resolve) => setTimeout(resolve, this.waitUntil.getTime() - new Date().getTime() + Math.random() * 1000));
 
         // Throttling
-        //await this.limiter.removeTokens(1);
+        await this.limiter.removeTokens(1);
 
         this.monitoring.numRequests++;
 

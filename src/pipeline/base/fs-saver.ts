@@ -1,5 +1,4 @@
 import { Pipeable } from "..";
-import { CVBufferFile } from "../interface";
 import fs from 'fs';
 import _ from 'lodash';
 

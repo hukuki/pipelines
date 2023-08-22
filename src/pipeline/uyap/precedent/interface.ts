@@ -1,3 +1,5 @@
+import { UYAPBase64File } from "../legislation/interface";
+
 interface UYAPPrecedentMetadata {
     documentId: string,
     itemType: {
@@ -28,6 +30,11 @@ interface PrecedentPaginationResponse {
     metadata: any
 };
 
+interface PrecedentResponse {
+    data: UYAPBase64File,
+    metadata: any
+}
+
 /*interface ArticleResponse {
     data: UYAPBase64File,
     metadata: any
@@ -46,4 +53,4 @@ interface CVClause {
 
 */
 
-export {UYAPPrecedentMetadata, PrecedentPaginationResponse};
+export {UYAPPrecedentMetadata, PrecedentPaginationResponse, PrecedentResponse};

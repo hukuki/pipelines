@@ -14,11 +14,9 @@ class MongoIterator<InputType extends FilterQuery<any>> extends Pipeable<InputTy
     }
 
     public async run(prev?: InputType): Promise<any> {
-        this.from.find(prev || {}).cursor().on('data', async (data) => {
+        for await(const data of this.from.find(prev || {})) {
             await this.next?.run(data);
-        }).on('error', (err) => {
-            console.error(err);
-        });
+        }
     }
 }
 

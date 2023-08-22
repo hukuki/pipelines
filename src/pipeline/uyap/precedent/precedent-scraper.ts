@@ -1,5 +1,4 @@
 import { Pipeable } from "../..";
-import CVLegislationTree from "./model/legislation-tree";
 
 import  Requester from "../../request";
 import { PrecedentResponse } from "./interface";
@@ -9,7 +8,7 @@ import { CVBufferFile } from "../../interface";
 import _ from "lodash";
 import CVPrecedentMetadata from './model/legislation-metadata';
 
-class PrecedentScraper extends Pipeable<CVLegislationTree, CVBufferFile> {
+class PrecedentScraper extends Pipeable<CVPrecedentMetadata, CVBufferFile> {
     private instance: Requester;
 
     private boilerplate = { "data": { "documentId": "" }, "applicationName": "UyapMevzuat" };
